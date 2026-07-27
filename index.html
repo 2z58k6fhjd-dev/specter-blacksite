@@ -14,7 +14,7 @@
   <div id="damage"></div>
 
   <header id="topHud">
-    <div>SPECTER // BLACK VEIL <span class="build">BUILD 2.0.1-3D</span></div>
+    <div>SPECTER // BLACK VEIL <span class="build">BUILD 2.1-COMBAT</span></div>
     <div id="objective">OBJECTIVE: RESTORE FACILITY POWER</div>
   </header>
 
@@ -25,7 +25,7 @@
   <footer id="bottomHud">
     <div>HP <b id="hp">100</b></div>
     <div>ARM <b id="armor">50</b></div>
-    <div>HK416 <b id="ammo">30/120</b></div>
+    <div><span id="weaponName">HK416</span> <b id="ammo">30/120</b></div>
     <div>LIGHT <b id="lightState">ON</b></div>
     <div>POWER <b id="powerState">OFFLINE</b></div>
     <div>SECURE <b id="secure">0/3</b></div>
@@ -37,7 +37,7 @@
       <h1>SPECTER: BLACKSITE</h1>
       <p>This is a new WebGL/Three.js foundation: real geometry, real lights, real shadows, 3D enemies, a 3D weapon, and full vertical camera movement.</p>
       <button id="startButton">ENTER BLACKSITE</button>
-      <div class="controls">WASD move · Mouse look · Click fire · Right click aim · E interact · F flashlight · R reload</div>
+      <div class="controls">WASD move · Mouse look · Click fire · Right click aim · E interact · F flashlight · R reload · 1 rifle · 2 pistol</div>
     </div>
   </div>
 
@@ -59,7 +59,7 @@
       }
     }
   </script>
-  <script type="module" src="./game.js?v=2.0.1"></script>
+  <script type="module" src="./game.js?v=2.1"></script>
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       navigator.serviceWorker.register('./service-worker.js').catch(() => {});
