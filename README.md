@@ -1,24 +1,17 @@
-# SPECTER: Blacksite v1.3 — Rendered Weapon Overhaul
+# SPECTER: Blacksite v1.4 — Transparent Weapon Sprite Fix
 
-This build removes the simple geometric weapon placeholders and replaces them with rendered first-person weapon sprites.
+This build corrects the large rectangular weapon-image problem from v1.3.
 
-## New in v1.3
+## Fixed in v1.4
 
-- Rendered tactical HK416-style rifle in hip-fire view
-- Separate centered ADS rifle view with visible optic reticle
-- Rendered suppressed tactical pistol
-- Separate pistol firing frame with muzzle flash
-- Larger, repositioned first-person weapon presentation
-- Cache-busted weapon assets so GitHub Pages downloads the new files
-- On-screen build label updated to `BUILD v1.3`
-
-## Preserved
-
-- VOLK rifleman and heavy enemy sprites
-- Facility power switch
-- Flashlight, ADS, reload, vertical aim, and accurate impacts
-- Desktop and mobile controls
+- Removed the full rectangular backgrounds around the rifle and pistol sprites
+- Added transparent alpha around all four weapon frames
+- Reduced first-person weapon scale so the rifle no longer covers most of the screen
+- Repositioned hip-fire and ADS views lower and farther right
+- Preserved the VOLK enemies, power switch, flashlight, ADS, reload, vertical aim, and mobile controls
+- Added the in-game `BUILD v1.4` marker
+- Updated asset cache-busting and the service-worker cache name
 
 ## Install
 
-Extract the ZIP and replace every file in the root of your GitHub Pages repository, including the complete `assets` folder. Wait for the Pages deployment to finish, then reload the game. If an older build remains visible, clear the site's browser data or open the page in a private tab once.
+Replace every file in the GitHub Pages repository, including the entire `assets` folder. Wait for the Pages deployment to finish, then reload the game. A private window may be useful if an older service worker is still active.
