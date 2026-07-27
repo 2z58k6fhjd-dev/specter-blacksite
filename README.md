@@ -1,3 +1,9 @@
+# SPECTER: Blacksite v2.0.1 — Module Import Fix
+
+This patch fixes the browser error: `Failed to resolve module specifier "three"`.
+
+Upload all files to the repository root, replacing the v2.0 files. After GitHub Pages deploys, hard-refresh the page with Ctrl+F5. If the old service worker remains active, open DevTools → Application → Service Workers → Unregister, then refresh once.
+
 # SPECTER: Blacksite v2.0 — True 3D Browser Prototype
 
 This is a new Three.js/WebGL foundation rather than an update to the old raycaster.
