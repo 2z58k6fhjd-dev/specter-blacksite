@@ -1,39 +1,26 @@
-# SPECTER: Blacksite — Mobile v0.2
+# SPECTER: Blacksite v1.1 — Weapon Overhaul
 
-A self-contained retro tactical shooter based on the supplied Specter character and equipment references.
+This build genuinely replaces the first-person weapon artwork while preserving the VOLK enemy update and the existing gameplay systems.
 
-## New in v0.2
-- Larger mission map
-- HK416-style rifle and M9A4-style pistol
-- Weapon swapping, magazines, reserves, and timed reloading
-- Rifle and heavy enemy types
-- Health and armor systems
-- Ammo, medkit, and armor pickups
-- Multi-stage mission objectives
-- Security relay, encrypted drive, access key, and extraction
-- Saved progress
-- Operator dossier using the supplied artwork
-- Offline-capable PWA manifest and service worker
-- Improved iPhone landscape controls
-- Lightweight generated sound effects
+## New in v1.1
 
-## Mobile controls
-- Left stick: movement and strafing
-- Right stick: turning
-- FIRE: shoot
-- R: reload
-- USE: interact with extraction
-- 1/2: swap rifle and pistol
-- Pause: pause/resume; restart after death
+- New first-person tactical rifle hip-fire frame
+- New rifle ADS frame
+- Suppressor, LPVO-style optic, offset red dot, weapon light, and free-float handguard details
+- New modern tactical pistol frame
+- New pistol firing frame with revised muzzle effect
+- Updated title and main-menu description to identify v1.1
+- Service-worker cache renamed to force browsers to download the new assets
 
-## How to run
-The game files must be served from a website or local web server. Opening the HTML directly from the iPhone Files app may not run correctly.
+## Preserved from v1.0
 
-Once hosted:
-1. Open the game URL in Safari.
-2. Tap Share.
-3. Tap **Add to Home Screen**.
-4. Launch SPECTER from the new icon.
-5. After the first successful load, the service worker stores the game for offline play.
+- VOLK rifleman and heavy enemy sprites
+- Interactive facility power switch
+- Flashlight, ADS, reload, vertical aim, and accurate impacts
+- Desktop and mobile controls
 
-The game is entirely static and needs no database or server-side code.
+## Install
+
+Extract the ZIP and upload **all files inside the extracted folder** to the root of your GitHub Pages repository. Keep `assets` beside `index.html`.
+
+When replacing an older build, delete or overwrite the old files. Then reload the page. If Safari still displays the earlier version, clear website data for the GitHub Pages domain once so the old service worker is removed.
