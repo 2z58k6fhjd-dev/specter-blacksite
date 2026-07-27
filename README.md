@@ -1,17 +1,24 @@
-# SPECTER: Blacksite v1.2 — Weapon Sprite Rendering Fix
+# SPECTER: Blacksite v1.3 — Rendered Weapon Overhaul
 
-This build fixes the actual reason the weapon appeared unchanged. v1.1 loaded the new PNG files, but the renderer still drew the old procedural HK416 over them. v1.2 removes that legacy rendering path and draws the replacement weapon assets directly.
+This build removes the simple geometric weapon placeholders and replaces them with rendered first-person weapon sprites.
 
-## Fixed in v1.2
+## New in v1.3
 
-- New rifle PNG is now visibly rendered in hip-fire
-- New rifle ADS PNG is now visibly rendered while aiming
-- New pistol PNGs are now used
-- Legacy procedural weapon drawing removed
-- Asset URLs include a v1.2 cache-busting query
-- HUD shows BUILD v1.2 for easy verification
-- Service worker immediately activates and deletes every older SPECTER cache
+- Rendered tactical HK416-style rifle in hip-fire view
+- Separate centered ADS rifle view with visible optic reticle
+- Rendered suppressed tactical pistol
+- Separate pistol firing frame with muzzle flash
+- Larger, repositioned first-person weapon presentation
+- Cache-busted weapon assets so GitHub Pages downloads the new files
+- On-screen build label updated to `BUILD v1.3`
+
+## Preserved
+
+- VOLK rifleman and heavy enemy sprites
+- Facility power switch
+- Flashlight, ADS, reload, vertical aim, and accurate impacts
+- Desktop and mobile controls
 
 ## Install
 
-Replace every existing repository file with this package, including the entire `assets` folder. After GitHub Pages finishes deploying, open the game in a Private tab once or clear the old site data. The upper-left HUD must read `BUILD v1.2`.
+Extract the ZIP and replace every file in the root of your GitHub Pages repository, including the complete `assets` folder. Wait for the Pages deployment to finish, then reload the game. If an older build remains visible, clear the site's browser data or open the page in a private tab once.
