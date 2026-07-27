@@ -1,5 +1,5 @@
-const CACHE='specter-v1.4-transparent-weapon-fix';
-const FILES=["./README.md", "./assets/ceiling.png", "./assets/enemy_heavy_0.png", "./assets/enemy_heavy_1.png", "./assets/enemy_heavy_2.png", "./assets/enemy_heavy_dead.png", "./assets/enemy_rifle_0.png", "./assets/enemy_rifle_1.png", "./assets/enemy_rifle_2.png", "./assets/enemy_rifle_dead.png", "./assets/floor.png", "./assets/icon-192.png", "./assets/icon-512.png", "./assets/specter_equipment.jpg", "./assets/specter_portrait.jpg", "./assets/specter_turnaround.jpg", "./assets/wall_concrete.png", "./assets/wall_red.png", "./assets/wall_steel.png", "./assets/weapon_pistol_0.png", "./assets/weapon_pistol_1.png", "./assets/weapon_rifle_0.png", "./assets/weapon_rifle_1.png", "./index.html", "./manifest.webmanifest"];
-self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)))});
+const CACHE='specter-3d-v2.0';
+const FILES=['./','./index.html','./styles.css','./game.js','./manifest.webmanifest'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request,{cache:'no-store'}).then(r=>{let copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match(e.request))) });
+self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));

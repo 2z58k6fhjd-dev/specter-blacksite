@@ -1,17 +1,39 @@
-# SPECTER: Blacksite v1.4 — Transparent Weapon Sprite Fix
+# SPECTER: Blacksite v2.0 — True 3D Browser Prototype
 
-This build corrects the large rectangular weapon-image problem from v1.3.
+This is a new Three.js/WebGL foundation rather than an update to the old raycaster.
 
-## Fixed in v1.4
+## What is genuinely 3D
 
-- Removed the full rectangular backgrounds around the rifle and pistol sprites
-- Added transparent alpha around all four weapon frames
-- Reduced first-person weapon scale so the rifle no longer covers most of the screen
-- Repositioned hip-fire and ADS views lower and farther right
-- Preserved the VOLK enemies, power switch, flashlight, ADS, reload, vertical aim, and mobile controls
-- Added the in-game `BUILD v1.4` marker
-- Updated asset cache-busting and the service-worker cache name
+- Polygonal rooms, floor, ceiling, walls, cover, pipes, and light fixtures
+- Perspective camera with unrestricted horizontal and vertical look
+- Dynamic facility lights and a shadow-casting weapon flashlight
+- 3D first-person HK416-style placeholder model attached to the camera
+- 3D VOLK-style enemy figures with depth, lighting, shadows, health, and movement
+- Raycast shooting through the actual 3D scene
+- Collision against 3D level geometry
+- Interactive power switch
+- Extraction zone and playable mission flow
+- Desktop pointer-lock controls and mobile twin-stick controls
 
-## Install
+## Run / publish
 
-Replace every file in the GitHub Pages repository, including the entire `assets` folder. Wait for the Pages deployment to finish, then reload the game. A private window may be useful if an older service worker is still active.
+Upload all files to the root of the existing GitHub Pages repository. The browser must be online because this early prototype imports Three.js from jsDelivr.
+
+The public URL remains:
+
+`https://2z58k6fhjd-dev.github.io/specter-blacksite/`
+
+## Controls
+
+- WASD: move
+- Mouse: look
+- Left click: fire
+- Right click: aim
+- E: interact
+- F: flashlight
+- R: reload
+- Shift: sprint
+
+## Important limitation
+
+The environment and weapons are real 3D, but the models are currently constructed from primitive meshes. The next milestone is importing proper GLB models for Specter's hands/weapons and the VOLK enemy.
