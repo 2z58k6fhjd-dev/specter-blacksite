@@ -1,13 +1,9 @@
-# SPECTER: Blacksite — v2.1 Combat Upgrade
+# SPECTER v2.1.1 — Startup Fix
 
-True 3D browser prototype with upgraded combat presentation.
+Fixes the startup crash: `Cannot access currentWeapon before initialization`.
 
-## Added
-- Visible muzzle flash and short muzzle light
-- Bullet-hole decals and sparks on geometry/enemies
-- Animated rifle and pistol reload motion
-- Switchable M9A4 pistol (press 2; press 1 for rifle)
-- More detailed procedural HK416
-- Open/translucent LPVO sight that no longer blocks ADS
+## Simplest update
+Replace only `game.js`, then hard-refresh the page.
 
-Upload every file in this folder to the root of the GitHub Pages repository. Hard refresh with Ctrl+F5 after deployment.
+## Recommended update
+Replace `game.js`, `index.html`, and `service-worker.js` so GitHub Pages and the browser cannot keep the broken cached script.

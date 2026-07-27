@@ -101,6 +101,7 @@ const flashMat=new THREE.MeshBasicMaterial({color:0xffd27a,transparent:true,opac
 const flashA=new THREE.Mesh(new THREE.ConeGeometry(.10,.42,8),flashMat);flashA.rotation.x=-Math.PI/2;muzzleFlash.add(flashA);
 const flashB=new THREE.Mesh(new THREE.SphereGeometry(.10,8,6),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending}));muzzleFlash.add(flashB);
 const muzzleLight=new THREE.PointLight(0xffa54a,0,5,2);muzzleFlash.add(muzzleLight);
+let currentWeapon='rifle';
 function placeMuzzle(){ if(currentWeapon==='rifle') muzzleFlash.position.set(0,.01,-1.93); else muzzleFlash.position.set(0,.02,-.42); }
 placeMuzzle();
 
@@ -133,7 +134,7 @@ function createEnemy(x,z,heavy=false){
 createEnemy(-2.5,-8); createEnemy(2.9,-18); createEnemy(-1.2,-27,true);
 
 const collisionMeshes=[];scene.traverse(o=>{if(o.isMesh && !o.userData.enemy && !o.userData.exit) collisionMeshes.push(o)});
-const keys={}; let started=false,powerOn=false,flashOn=true,aiming=false,reloading=false,reloadStart=0,ammo=30,reserve=120,pistolAmmo=15,pistolReserve=60,currentWeapon='rifle',hp=100,armor=50,kills=0,lastShot=0,flashUntil=0;
+const keys={}; let started=false,powerOn=false,flashOn=true,aiming=false,reloading=false,reloadStart=0,ammo=30,reserve=120,pistolAmmo=15,pistolReserve=60,hp=100,armor=50,kills=0,lastShot=0,flashUntil=0;
 const raycaster=new THREE.Raycaster(); const clock=new THREE.Clock();
 const prompt=document.getElementById('prompt'), msg=document.getElementById('message');
 function toast(t){msg.textContent=t;msg.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>msg.style.opacity=0,1700)}
