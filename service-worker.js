@@ -3,11 +3,11 @@ const FILES = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./assets/icon-192.png",
-  "./assets/icon-512.png",
-  "./assets/specter_portrait.jpg",
-  "./assets/specter_turnaround.jpg",
-  "./assets/specter_equipment.jpg"
+  "./icon-192.png",
+  "./icon-512.png",
+  "./specter_portrait.jpg",
+  "./specter_turnaround.jpg",
+  "./specter_equipment.jpg"
 ];
 self.addEventListener("install", e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))));
 self.addEventListener("activate", e => e.waitUntil(
