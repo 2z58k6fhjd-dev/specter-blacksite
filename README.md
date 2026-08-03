@@ -1,30 +1,20 @@
-# SPECTER: Blacksite v2.3 — Combat & Immersion Update
+# SPECTER: Blacksite v2.4 — Licensed 3D Model Integration
 
-Built on the audited Milestone 1 enemy-AI foundation.
+This update integrates real glTF models for the first-person AR-15, Beretta M9, and VOLK/Russian soldier enemies.
 
-## New combat features
-- Hold left mouse / FIRE for automatic HK416 fire
-- Distinct rifle and pistol procedural gunshots
-- Physical brass shell casings with bounce and metallic landing sounds
-- Muzzle smoke and brighter dynamic muzzle lighting
-- Stronger weapon recoil, recovery, walking bob, sprint pose, and inertia
-- Tactical reload and longer empty reload with magazine and bolt audio stages
-- Metal and concrete impact sounds, decals, and sparks
+## Highlights
+- Real PBR weapon and enemy models
+- Weapon textures reduced to 1K for browser and GTX 1050/phone friendliness
+- Procedural fallback models remain available if a model fails to load
+- Imported-enemy hit detection supports body and headshot damage
+- Runtime caching for large model files avoids service-worker installation failures
+- Required attribution is included in `CREDITS.md` and each model folder
 
-## Audio and voices
-- Procedural facility electrical hum and ventilation noise
-- Footstep sounds with sprint cadence
-- Enemy rifle sounds and radio chirps
-- Original context-sensitive VOLK radio dialogue using the device's built-in speech synthesizer
-- Voice lines for contact, investigation, searching, reinforcement requests, casualties, and mission completion
-
-No copyrighted commercial-game voice samples are included. Speech voice quality varies by operating system and installed system voices.
-
-## Existing AI
-Patrols, hearing, flashlight detection, suspicion, investigation, search, cover, flanking, squad alerts, burst fire, and reinforcements remain active.
-
-## Controls
-WASD move, Shift sprint, mouse look, hold left click fire, right click ADS, E interact, F flashlight, R reload, 1 rifle, 2 pistol.
+## Important license limitation
+The AR-15 model is **CC BY-NC 4.0**. This build must remain non-commercial unless that asset is replaced or separate permission is obtained.
 
 ## Installation
-Back up the current working repository, then replace the repository-root files with this package. Wait for GitHub Pages deployment and hard refresh once.
+Replace the old repository contents with everything inside this folder. Keep the entire `assets` directory intact. After GitHub Pages deploys, hard-refresh once. The menu should show `BUILD 2.4-LICENSED-MODELS`.
+
+## Controls
+WASD move, Shift sprint, mouse look, hold left click fire, right click aim, E interact, F flashlight, R reload, 1 rifle, 2 pistol.

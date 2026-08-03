@@ -14,7 +14,7 @@
   <div id="damage"></div>
 
   <header id="topHud">
-    <div>SPECTER // BLACK VEIL <span class="build">BUILD 2.3-COMBAT-IMMERSION</span></div>
+    <div>SPECTER // BLACK VEIL <span class="build">BUILD 2.4-LICENSED-MODELS</span></div>
     <div id="objective">OBJECTIVE: RESTORE FACILITY POWER</div>
   </header>
 
@@ -33,9 +33,9 @@
 
   <div id="startPanel">
     <div class="panel">
-      <div class="eyebrow">COMBAT & IMMERSION UPDATE</div>
+      <div class="eyebrow">LICENSED 3D MODEL UPDATE</div>
       <h1>SPECTER: BLACKSITE</h1>
-      <p>Weapons now feature automatic rifle fire, physical shell casings, muzzle smoke, sprint inertia, tactical and empty reloads, richer impact effects, procedural facility audio, and original synthesized VOLK radio voices.</p>
+      <p>Real Sketchfab glTF models now replace the procedural AR-15, M9, and VOLK soldier visuals, with optimized browser textures and automatic fallbacks if an asset cannot load.</p>
       <button id="startButton">ENTER BLACKSITE</button>
       <div class="controls">WASD move · Shift sprint · Mouse look · Hold click fire · Right click aim · E interact · F flashlight · R reload · 1 rifle · 2 pistol</div>
     </div>
@@ -60,7 +60,7 @@
       }
     }
   </script>
-  <script type="module" src="./game.js?v=2.3.0"></script>
+  <script type="module" src="./game.js?v=2.4"></script>
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       navigator.serviceWorker.register('./service-worker.js').catch(() => {});

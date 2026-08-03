@@ -1,8 +1,10 @@
-// SPECTER 2.3 Combat & Immersion build.
+// SPECTER 2.4 licensed glTF model integration and browser optimization update.
 // Adds procedural spatial audio, synthesized original VOLK radio voices, shell casings,
 // muzzle smoke, automatic rifle fire, sprint/weapon inertia, and tactical vs empty reloads.
 import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
 
 const root = document.getElementById('game');
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -30,6 +32,97 @@ const wallMat = new THREE.MeshStandardMaterial({color:0x38403d,roughness:.9,meta
 const floorMat = new THREE.MeshStandardMaterial({color:0x202724,roughness:.72,metalness:.18});
 const metalMat = new THREE.MeshStandardMaterial({color:0x161c1a,roughness:.48,metalness:.72});
 const trimMat = new THREE.MeshStandardMaterial({color:0x0b0f0e,roughness:.55,metalness:.5});
+
+// --- Licensed glTF asset pipeline ------------------------------------------
+// Models remain optional at runtime: if a model fails to load, the tested
+// procedural fallback remains visible and gameplay continues.
+const gltfLoader=new GLTFLoader();
+const modelTemplates={ar15:null,m9:null,soldier:null};
+const pendingEnemyModels=[];
+function loadGLTF(url){return new Promise((resolve,reject)=>gltfLoader.load(url,resolve,undefined,reject));}
+function prepareModel(root,{maxDimension=1,exclude=[]}={}){
+  const container=new THREE.Group();container.add(root);
+  root.updateMatrixWorld(true);
+  root.traverse(o=>{
+    if(o.isMesh){
+      const n=(o.name||'').toLowerCase();
+      if(exclude.some(x=>n.includes(x))){o.visible=false;return}
+      o.castShadow=true;o.receiveShadow=true;
+      if(o.material){
+        const mats=Array.isArray(o.material)?o.material:[o.material];
+        mats.forEach(m=>{if('envMapIntensity'in m)m.envMapIntensity=.65;m.needsUpdate=true});
+      }
+    }
+  });
+  const box=new THREE.Box3().setFromObject(root),size=box.getSize(new THREE.Vector3());
+  const largest=Math.max(size.x,size.y,size.z)||1;
+  root.scale.multiplyScalar(maxDimension/largest);
+  root.updateMatrixWorld(true);
+  const scaledBox=new THREE.Box3().setFromObject(root),center=scaledBox.getCenter(new THREE.Vector3());
+  root.position.sub(center);
+  return container;
+}
+function orientLongAxisToForward(root){
+  root.updateMatrixWorld(true);const size=new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3());
+  if(size.x>size.z*1.2)root.rotation.y=-Math.PI/2;
+  else if(size.y>size.z*1.2)root.rotation.x=Math.PI/2;
+  return root;
+}
+function installWeaponModel(template,holder,kind){
+  if(!template||holder.userData.realModel)return;
+  const model=template.clone(true);model.name=`${kind}-licensed-model`;
+  model.traverse(o=>{if(o.isMesh){o.renderOrder=2;o.frustumCulled=false}});
+  holder.add(model);holder.userData.realModel=model;
+  // Hide procedural pieces but keep the group itself for recoil/reload motion.
+  holder.children.forEach(c=>{if(c!==model)c.visible=false});
+  if(kind==='rifle'){
+    model.scale.multiplyScalar(.92);model.position.set(0,-.04,-.82);model.rotation.set(.02,Math.PI,0);
+  }else{
+    model.scale.multiplyScalar(.72);model.position.set(0,-.05,-.20);model.rotation.set(.02,Math.PI,0);
+  }
+}
+function poseSoldier(model){
+  const bones={};model.traverse(o=>{if(o.isBone)bones[(o.name||'').toLowerCase()]=o});
+  const find=(part)=>Object.entries(bones).find(([n])=>n.includes(part))?.[1];
+  const rs=find('arm right shoulder 2'),ls=find('arm left shoulder 2');
+  const re=find('arm rght elbow'),le=find('arm left elbow');
+  // Bring the supplied T-pose closer to a low-ready tactical stance.
+  if(rs){rs.rotation.z-=1.05;rs.rotation.x-=.38}
+  if(ls){ls.rotation.z+=1.05;ls.rotation.x-=.38}
+  if(re)re.rotation.y-=.72;if(le)le.rotation.y+=.72;
+  return {rightShoulder:rs,leftShoulder:ls,rightElbow:re,leftElbow:le,
+    rightThigh:find('leg right thigh'),leftThigh:find('leg left thigh')};
+}
+function installSoldierModel(enemy){
+  if(!modelTemplates.soldier||enemy.userData.realModel||enemy.userData.dead)return;
+  const model=cloneSkeleton(modelTemplates.soldier);model.name='licensed-russian-soldier';
+  model.traverse(o=>{if(o.isMesh){o.userData.enemy=enemy;o.castShadow=true;o.receiveShadow=true}});
+  enemy.children.filter(c=>c.userData.fallbackVisual).forEach(c=>c.visible=false);
+  enemy.add(model);enemy.userData.realModel=model;enemy.userData.bones=poseSoldier(model);
+  model.position.set(0,0,0);model.rotation.y=Math.PI;
+}
+async function loadLicensedModels(){
+  const results=await Promise.allSettled([
+    loadGLTF('./assets/models/ar15/scene.gltf'),
+    loadGLTF('./assets/models/m9/scene.gltf'),
+    loadGLTF('./assets/models/soldier/scene.gltf')
+  ]);
+  if(results[0].status==='fulfilled'){
+    const r=prepareModel(results[0].value.scene,{maxDimension:1.85,exclude:['ground','stand','plane','glass','bullet','mag001','mag002','scope001','stock001']});
+    orientLongAxisToForward(r);modelTemplates.ar15=r;installWeaponModel(r,rifle,'rifle');
+  }else console.warn('AR-15 model fallback active',results[0].reason);
+  if(results[1].status==='fulfilled'){
+    const r=prepareModel(results[1].value.scene,{maxDimension:.72});orientLongAxisToForward(r);modelTemplates.m9=r;installWeaponModel(r,pistol,'pistol');
+  }else console.warn('M9 model fallback active',results[1].reason);
+  if(results[2].status==='fulfilled'){
+    const r=prepareModel(results[2].value.scene,{maxDimension:2.05,exclude:['dummy_root ground']});
+    // Place feet at y=0 after normalization.
+    r.updateMatrixWorld(true);const b=new THREE.Box3().setFromObject(r);r.position.y-=b.min.y;
+    modelTemplates.soldier=r;pendingEnemyModels.splice(0).forEach(installSoldierModel);
+  }else console.warn('Soldier model fallback active',results[2].reason);
+  document.body.classList.add('models-ready');
+}
+
 
 // --- Procedural audio and original synthesized radio voices -----------------
 let audioCtx=null, masterGain=null, ambienceGain=null, audioReady=false;
@@ -132,8 +225,8 @@ const weaponRoot=new THREE.Group(); camera.add(weaponRoot);
 const gunDark=new THREE.MeshStandardMaterial({color:0x111413,roughness:.28,metalness:.88});
 const gunPoly=new THREE.MeshStandardMaterial({color:0x2d332f,roughness:.58,metalness:.35});
 const gunRubber=new THREE.MeshStandardMaterial({color:0x080a09,roughness:.92,metalness:.05});
-function part(g,w,h,d,x,y,z,mat=gunDark){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;g.add(m);return m}
-function cyl(g,r,l,x,y,z,rotX=Math.PI/2,mat=gunDark,segments=18){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,l,segments),mat);m.rotation.x=rotX;m.position.set(x,y,z);m.castShadow=true;g.add(m);return m}
+function part(g,w,h,d,x,y,z,mat=gunDark){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.castShadow=true;m.userData.fallbackVisual=true;g.add(m);return m}
+function cyl(g,r,l,x,y,z,rotX=Math.PI/2,mat=gunDark,segments=18){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,l,segments),mat);m.rotation.x=rotX;m.position.set(x,y,z);m.castShadow=true;m.userData.fallbackVisual=true;g.add(m);return m}
 
 const rifle=new THREE.Group(); weaponRoot.add(rifle);
 part(rifle,.20,.18,.68,0,0,0);                         // receiver
@@ -148,13 +241,15 @@ part(rifle,.25,.28,.34,0,-.02,.86,gunRubber);           // stock
 part(rifle,.11,.09,.30,.11,-.04,-.82,gunPoly);          // flashlight body
 cyl(rifle,.065,.30,.11,-.04,-.82,Math.PI/2,gunPoly,16);
 // LPVO body with open glass
-cyl(rifle,.105,.48,0,.22,-.34,Math.PI/2,gunDark,24);
-const scopeRear=new THREE.Mesh(new THREE.TorusGeometry(.085,.012,10,28),gunDark);scopeRear.position.set(0,.22,-.095);scopeRear.rotation.x=Math.PI/2;rifle.add(scopeRear);
-const scopeFront=new THREE.Mesh(new THREE.TorusGeometry(.088,.012,10,28),gunDark);scopeFront.position.set(0,.22,-.585);scopeFront.rotation.x=Math.PI/2;rifle.add(scopeFront);
-const glassMat=new THREE.MeshPhysicalMaterial({color:0x7fcab0,transparent:true,opacity:.16,roughness:.02,metalness:0,transmission:.78,thickness:.015,side:THREE.DoubleSide,depthWrite:false});
-const glass=new THREE.Mesh(new THREE.CircleGeometry(.078,28),glassMat);glass.position.set(0,.22,-.59);rifle.add(glass);
+// Open-ended LPVO housing: unlike a closed cylinder, this cannot place an opaque cap across the sight picture.
+const scopeTube=new THREE.Mesh(new THREE.CylinderGeometry(.105,.105,.48,24,1,true),gunDark);
+scopeTube.rotation.x=Math.PI/2;scopeTube.position.set(0,.22,-.34);scopeTube.castShadow=true;scopeTube.userData.fallbackVisual=true;rifle.add(scopeTube);
+const scopeRear=new THREE.Mesh(new THREE.TorusGeometry(.085,.012,10,28),gunDark);scopeRear.position.set(0,.22,-.095);scopeRear.rotation.x=Math.PI/2;scopeRear.userData.fallbackVisual=true;rifle.add(scopeRear);
+const scopeFront=new THREE.Mesh(new THREE.TorusGeometry(.088,.012,10,28),gunDark);scopeFront.position.set(0,.22,-.585);scopeFront.rotation.x=Math.PI/2;scopeFront.userData.fallbackVisual=true;rifle.add(scopeFront);
+const glassMat=new THREE.MeshBasicMaterial({color:0x9de8cf,transparent:true,opacity:.045,side:THREE.DoubleSide,depthWrite:false});
+const glass=new THREE.Mesh(new THREE.CircleGeometry(.078,28),glassMat);glass.position.set(0,.22,-.59);glass.userData.fallbackVisual=true;rifle.add(glass);
 const dotMat=new THREE.MeshBasicMaterial({color:0xff3c2e,transparent:true,opacity:.85,depthTest:false});
-const dot=new THREE.Mesh(new THREE.CircleGeometry(.005,12),dotMat);dot.position.set(0,.22,-.596);rifle.add(dot);
+const dot=new THREE.Mesh(new THREE.CircleGeometry(.005,12),dotMat);dot.position.set(0,.22,-.596);dot.userData.fallbackVisual=true;rifle.add(dot);
 
 const pistol=new THREE.Group(); weaponRoot.add(pistol); pistol.visible=false;
 part(pistol,.18,.15,.52,0,.02,-.12);                    // slide
@@ -262,8 +357,11 @@ function createEnemy(x,z,heavy=false,personality='cautious',routeIndex=0){
   const mask=new THREE.Mesh(new THREE.BoxGeometry(.31,.17,.09),armor);mask.position.set(0,1.92,-.20);g.add(mask);
   const rifleMesh=new THREE.Mesh(new THREE.BoxGeometry(.09,.09,.9),gunDark);rifleMesh.position.set(.20,1.35,-.46);rifleMesh.rotation.z=-.15;g.add(rifleMesh);
   const statusLamp=new THREE.PointLight(0xff3000,0,.7,2);statusLamp.position.set(.2,1.4,-.8);g.add(statusLamp);g.userData.muzzle=statusLamp;
+  [legs,torso,vest,head,helmet,mask,rifleMesh].forEach(o=>o.userData.fallbackVisual=true);
   g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.userData.enemy=g}});
-  scene.add(g); enemies.push(g); return g;
+  scene.add(g); enemies.push(g);
+  if(modelTemplates.soldier)installSoldierModel(g);else pendingEnemyModels.push(g);
+  return g;
 }
 createEnemy(-2.5,-8,false,'cautious',0);
 createEnemy(2.9,-18,false,'aggressive',1);
@@ -288,8 +386,8 @@ function shoot(){
   raycaster.setFromCamera(new THREE.Vector2(0,0),camera);
   const allTargets=[...enemies,...collisionMeshes];const hits=raycaster.intersectObjects(allTargets,true);
   if(hits.length){const hit=hits[0],obj=hit.object,enemy=obj.userData.enemy;
-    if(enemy&&!enemy.userData.dead){enemy.userData.state='combat';enemy.userData.lastSeen.copy(controls.object.position);enemy.userData.suspicion=1;enemy.userData.health-=obj.geometry.type==='SphereGeometry'?(currentWeapon==='rifle'?72:55):(currentWeapon==='rifle'?35:28);spawnImpact(hit);playSound('impactConcrete');
-      if(enemy.userData.health<=0){enemy.userData.dead=true;kills++;enemy.rotation.z=Math.PI/2;enemy.position.y=.30;enemy.traverse(o=>{if(o.isMesh)o.material=new THREE.MeshStandardMaterial({color:0x111211,roughness:.9})});radio(Math.random()<.5?'MAN DOWN!':'OPERATOR DOWN!');toast('HOSTILE NEUTRALIZED');if(kills===AI.totalHostiles&&AI.reinforcementsArrived){document.getElementById('objective').textContent='OBJECTIVE: REACH EXTRACTION';toast('AREA SECURE — EXTRACT')}}
+    if(enemy&&!enemy.userData.dead){enemy.userData.state='combat';enemy.userData.lastSeen.copy(controls.object.position);enemy.userData.suspicion=1;const localHitY=hit.point.y-enemy.position.y;const headshot=localHitY>1.68;enemy.userData.health-=headshot?(currentWeapon==='rifle'?72:55):(currentWeapon==='rifle'?35:28);spawnImpact(hit);playSound('impactConcrete');
+      if(enemy.userData.health<=0){enemy.userData.dead=true;kills++;enemy.rotation.z=Math.PI/2;enemy.position.y=.30;enemy.traverse(o=>{if(o.isMesh){const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>{if(m?.color)m.color.multiplyScalar(.32);if(m)m.needsUpdate=true})}});radio(Math.random()<.5?'MAN DOWN!':'OPERATOR DOWN!');toast('HOSTILE NEUTRALIZED');if(kills===AI.totalHostiles&&AI.reinforcementsArrived){document.getElementById('objective').textContent='OBJECTIVE: REACH EXTRACTION';toast('AREA SECURE — EXTRACT')}}
     }else{spawnImpact(hit);playSound(hit.object.material?.metalness>.45?'impactMetal':'impactConcrete')}
   }
   updateHud();
@@ -316,7 +414,22 @@ bindPad('movePad',moveVec);bindPad('lookPad',lookVec);
 document.querySelectorAll('#mobileControls button').forEach(b=>{const a=b.dataset.action;b.addEventListener('pointerdown',e=>{e.preventDefault();if(a==='fire'){fireHeld=true;shoot()}if(a==='use')interact();if(a==='reload')reload();if(a==='flashlight'){flashOn=!flashOn;flashlight.visible=flashOn;updateHud()}if(a==='swap')switchWeapon(currentWeapon==='rifle'?'pistol':'rifle');if(a==='aim')aiming=true});const release=()=>{if(a==='aim')aiming=false;if(a==='fire')fireHeld=false};b.addEventListener('pointerup',release);b.addEventListener('pointercancel',release)});
 
 function canMove(next){const p=new THREE.Vector3(next.x,1,next.z);if(Math.abs(p.x)>8.45||p.z>8.3||p.z<-32.4)return false;for(const m of collisionMeshes){if(['floor','ceiling','beam','pipeL','light fixture'].includes(m.name))continue;const b=new THREE.Box3().setFromObject(m).expandByScalar(.30);if(b.containsPoint(p))return false}return true}
-function updateMovement(dt){let f=(keys.KeyW?1:0)-(keys.KeyS?1:0)-moveVec.y;let s=(keys.KeyD?1:0)-(keys.KeyA?1:0)+moveVec.x;const v=new THREE.Vector3(s,0,-f);const moving=v.lengthSq()>.02;if(v.lengthSq()>1)v.normalize();v.applyAxisAngle(new THREE.Vector3(0,1,0),camera.rotation.y);const sprinting=keys.ShiftLeft&&moving&&!aiming;controls.object.userData.sprinting=sprinting;controls.object.userData.moving=moving;const speed=(sprinting?6.2:3.7)*dt;const next=controls.object.position.clone().addScaledVector(v,speed);if(canMove(next))controls.object.position.copy(next);if(moving){stepTimer-=dt;if(stepTimer<=0){playSound('step');stepTimer=sprinting?.28:.43}}else stepTimer=0;if(Math.abs(lookVec.x)+Math.abs(lookVec.y)>.01){controls.object.rotation.y-=lookVec.x*dt*2.2;camera.rotation.x=Math.max(-1.3,Math.min(1.3,camera.rotation.x-lookVec.y*dt*1.8))}}
+function updateMovement(dt){
+  const forwardInput=(keys.KeyW?1:0)-(keys.KeyS?1:0)-moveVec.y;
+  const strafeInput=(keys.KeyD?1:0)-(keys.KeyA?1:0)+moveVec.x;
+
+  // Derive movement from the camera's actual world-facing direction. This remains correct
+  // after any amount of mouse turning and avoids inverted WASD caused by reading Euler Y.
+  const forward=new THREE.Vector3();camera.getWorldDirection(forward);forward.y=0;
+  if(forward.lengthSq()<.0001)forward.set(0,0,-1);else forward.normalize();
+  const right=new THREE.Vector3().crossVectors(forward,new THREE.Vector3(0,1,0)).normalize();
+  const v=forward.multiplyScalar(forwardInput).add(right.multiplyScalar(strafeInput));
+  const moving=v.lengthSq()>.02;if(v.lengthSq()>1)v.normalize();
+  const sprinting=keys.ShiftLeft&&moving&&!aiming;controls.object.userData.sprinting=sprinting;controls.object.userData.moving=moving;
+  const speed=(sprinting?6.2:3.7)*dt;const next=controls.object.position.clone().addScaledVector(v,speed);if(canMove(next))controls.object.position.copy(next);
+  if(moving){stepTimer-=dt;if(stepTimer<=0){playSound('step');stepTimer=sprinting?.28:.43}}else stepTimer=0;
+  if(Math.abs(lookVec.x)+Math.abs(lookVec.y)>.01){controls.object.rotation.y-=lookVec.x*dt*2.2;camera.rotation.x=Math.max(-1.3,Math.min(1.3,camera.rotation.x-lookVec.y*dt*1.8))}
+}
 function hasLineOfSight(from,to){
   const direction=to.clone().sub(from);const distance=direction.length();
   if(distance<.01)return true;direction.normalize();
@@ -422,10 +535,13 @@ function updateEnemies(dt,t){
       }
     }
     const faceTarget=(u.state==='combat'?playerPos:u.target)||u.route[u.routeIndex%u.route.length];if(faceTarget){const d=faceTarget.clone().sub(e.position);e.rotation.y=Math.atan2(d.x,d.z)+Math.PI}
+    const bones=u.bones;if(bones){const walking=u.state!=='search'&&u.state!=='combat'?1:(u.target?1:.25);const swing=Math.sin(t*7+u.phase)*.24*walking;if(bones.rightThigh)bones.rightThigh.rotation.x=swing;if(bones.leftThigh)bones.leftThigh.rotation.x=-swing;}
     e.position.y=Math.sin(t*2+u.phase)*.015;
   }
   if(!AI.reinforcementsCalled&&kills===AI.totalHostiles){AI.reinforcementsArrived=true;document.getElementById('objective').textContent='OBJECTIVE: REACH EXTRACTION';toast('AREA SECURE — EXTRACT')}
 }
+loadLicensedModels().catch(err=>console.warn('Licensed model loading failed; fallbacks retained.',err));
+
 function animate(){
   requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
   if(started){
@@ -441,9 +557,14 @@ function animate(){
     const bobX=Math.sin(t*bobRate)*bobAmp,bobY=Math.abs(Math.cos(t*bobRate))*bobAmp*.7;
     const desired=target.clone();desired.x+=bobX;desired.y-=bobY;desired.z+=recoilKick;
     weaponRoot.position.lerp(desired,1-Math.pow(.001,dt));
-    weaponRoot.rotation.y+=(sprinting?.22:(aiming?0:-.08)-weaponRoot.rotation.y)*dt*8;
-    weaponRoot.rotation.x+=(sprinting?.42:0-weaponRoot.rotation.x)*dt*8;
-    weaponRoot.rotation.z+=(sprinting?-.32:0-weaponRoot.rotation.z)*dt*7;
+    // Interpolate toward fixed orientation targets. The previous ternary expressions added
+    // a constant rotation every frame while sprinting, which caused the weapon to spin.
+    const targetRotX=sprinting?.42:0;
+    const targetRotY=sprinting?.22:(aiming?0:-.08);
+    const targetRotZ=sprinting?-.32:0;
+    weaponRoot.rotation.x+=(targetRotX-weaponRoot.rotation.x)*(1-Math.exp(-8*dt));
+    weaponRoot.rotation.y+=(targetRotY-weaponRoot.rotation.y)*(1-Math.exp(-8*dt));
+    weaponRoot.rotation.z+=(targetRotZ-weaponRoot.rotation.z)*(1-Math.exp(-7*dt));
     if(reloading){const rp=Math.min(1,(performance.now()-reloadStart)/reloadDuration);const lower=Math.sin(Math.min(1,rp*1.8)*Math.PI*.5);weaponRoot.rotation.z+=Math.sin(rp*Math.PI)*.92;weaponRoot.rotation.x+=Math.sin(rp*Math.PI)*.50;weaponRoot.position.y-=lower*.18;if(reloadEmpty&&rp>.68&&rp<.86)weaponRoot.position.z+=Math.sin((rp-.68)/.18*Math.PI)*.09}
     if(performance.now()>flashUntil){muzzleFlash.visible=false;muzzleLight.intensity=0}else{muzzleFlash.rotation.z=Math.random()*Math.PI;muzzleFlash.scale.setScalar(.75+Math.random()*.5)}
     raycaster.setFromCamera(new THREE.Vector2(0,0),camera);const h=raycaster.intersectObject(switchGroup,true)[0];prompt.textContent=h&&h.distance<2.6&&!powerOn?'PRESS E / USE — RESTORE POWER':'';
