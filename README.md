@@ -1,30 +1,30 @@
-# SPECTER: Blacksite v2.2.1 — Audited Milestone 1 Enemy AI
+# SPECTER: Blacksite v2.3 — Combat & Immersion Update
 
-This build completes the first major gameplay milestone.
+Built on the audited Milestone 1 enemy-AI foundation.
 
-## Enemy behavior
-- Patrol routes with separate sectors
-- Hearing for gunshots and the facility power switch
-- Flashlight-beam detection in darkness
-- Suspicion and escalation instead of instant omniscience
-- Investigation of sound locations
-- Last-known-position searching after losing sight
-- Distinct aggressive, cautious/flanking, and defensive/cover personalities
-- Radio callouts and squad alert propagation
-- Reinforcement call and delayed arrival from the south corridor
-- Burst-fire behavior, tracer effects, and distance-based accuracy
+## New combat features
+- Hold left mouse / FIRE for automatic HK416 fire
+- Distinct rifle and pistol procedural gunshots
+- Physical brass shell casings with bounce and metallic landing sounds
+- Muzzle smoke and brighter dynamic muzzle lighting
+- Stronger weapon recoil, recovery, walking bob, sprint pose, and inertia
+- Tactical reload and longer empty reload with magazine and bolt audio stages
+- Metal and concrete impact sounds, decals, and sparks
+
+## Audio and voices
+- Procedural facility electrical hum and ventilation noise
+- Footstep sounds with sprint cadence
+- Enemy rifle sounds and radio chirps
+- Original context-sensitive VOLK radio dialogue using the device's built-in speech synthesizer
+- Voice lines for contact, investigation, searching, reinforcement requests, casualties, and mission completion
+
+No copyrighted commercial-game voice samples are included. Speech voice quality varies by operating system and installed system voices.
+
+## Existing AI
+Patrols, hearing, flashlight detection, suspicion, investigation, search, cover, flanking, squad alerts, burst fire, and reinforcements remain active.
 
 ## Controls
-WASD move, mouse look, left click fire, right click ADS, E interact, F flashlight, R reload, 1 rifle, 2 pistol.
+WASD move, Shift sprint, mouse look, hold left click fire, right click ADS, E interact, F flashlight, R reload, 1 rifle, 2 pistol.
 
 ## Installation
-Replace the live repository files with this package and keep all files together in the repository root.
-
-
-## Audit corrections in 2.2.1
-- Isolated collision and sight raycasts to static world geometry so the player's camera-mounted gun cannot block movement, bullets, or enemy vision.
-- Corrected bullet-decal orientation on rotated surfaces.
-- Corrected enemy tracer origin so it follows the enemy rifle direction.
-- Prevented mission-complete messages from firing every rendered frame.
-- Restricted extraction completion to the marked extraction footprint.
-- Added a mobile weapon-swap button and aim-release failsafes.
+Back up the current working repository, then replace the repository-root files with this package. Wait for GitHub Pages deployment and hard refresh once.
